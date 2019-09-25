@@ -10,11 +10,10 @@
 #include <glm/gtc/type_ptr.hpp>
 
 using namespace std;
-using namespace glm;
 
 //window dimensions
 const GLint WIDTH = 800, HEIGHT = 600;
-GLuint VAO, VBO, IBO, shader, uniformModel;
+GLuint VAO, VBO, IBO, shader, uniformModel, uniformProjection;
 const float toRadians = 3.14f / 180.0f;
 
 float curAngle = 0.0f;
@@ -35,11 +34,16 @@ static const char* vShader = "						            \n\
 #version 330													\n\
 																\n\
 layout (location = 0) in vec3 pos;								\n\
+																\n\
 out vec4 vCol;													\n\
+																\n\
 uniform	mat4 model;												\n\
+																\n\
+uniform mat4 projection;										\n\
+																\n\
 void main()														\n\
 {																\n\
-	gl_Position = model * vec4(pos, 1.0);						\n\
+	gl_Position = projection * model * vec4(pos, 1.0);			\n\
 	vCol = vec4(clamp(pos, 0.0f, 1.0f), 1.0f);					\n\
 }";
 
@@ -56,10 +60,12 @@ void main()														\n\
 
 void create_triangle()
 {	
-	unsigned int Indices[] = { 0, 3, 1,
-						   1, 3, 2,
-						   2, 3, 0,
-						   0, 1, 2 };
+	unsigned int Indices[] = { 
+		0, 3, 1,
+		1, 3, 2,
+		2, 3, 0,
+		0, 1, 2 
+	};
 
 
 	//vertices of the triangle min = 0 max = 1.0f (normalized scale)
@@ -164,6 +170,7 @@ void compile_shaders()
 	}
 
 	uniformModel = glGetUniformLocation(shader, "model"); //get the location of the shader var model and assign to uniformModel
+	uniformProjection = glGetUniformLocation(shader, "projection");
 }
 
 int main()
@@ -218,6 +225,8 @@ int main()
 	create_triangle();
 	compile_shaders();
 
+	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)bufferwidth / (GLfloat)bufferheight, 0.1f, 100.0f);
+
 	//Loop Until window closes
 	while(!glfwWindowShouldClose(mainwindow))
 	{
@@ -264,12 +273,13 @@ int main()
 
 		glUseProgram(shader); //using the executable with id "shader" in the gpu previously created
 
-		mat4 model(1.0f); //construct identity matrix of 4x4 and assign to model
-		//model = translate(model, vec3(triOffset, 0.0f, 0.0f)); //translate the model matrix i.e. change only the x and y value in this case for the triangle transformation
-		model = rotate(model, curAngle * toRadians, vec3(0.0f, 1.0f, 0.0f));
-		model = scale(model, vec3(0.4f, 0.4f, 0.0f));
+		glm::mat4 model; //construct identity matrix of 4x4 and assign to model
+		model = translate(model, glm::vec3(0.0f, 0.0f, -3.5f)); //translate the model matrix i.e. change only the x and y value in this case for the triangle transformation
+		model = rotate(model, curAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		//model = scale(model, glm::vec3(0.4f, 0.4f, 0.0f));
 
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, value_ptr(model)); //bind the uniformModel to this new model 
+		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, value_ptr(projection));
 		glBindVertexArray(VAO); //using the VAO for triangles 
 
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
