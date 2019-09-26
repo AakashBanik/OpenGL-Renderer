@@ -14,9 +14,9 @@ void Shader::CreateFromString(const char* vertexCode, const char* fragmentCode)
 
 void Shader::CreateFromFiles(const char* vertexLocation, const char* fragmentLocation)
 {
-	std::string vertexString = ReadFile(vertexLocation);
+	std::string vertexString = ReadFile(vertexLocation); //read the file using ifstream 
 	std::string fragmentString = ReadFile(fragmentLocation);
-	const char* vertexCode = vertexString.c_str();
+	const char* vertexCode = vertexString.c_str(); //convert into char pointer string
 	const char* fragmentCode = fragmentString.c_str();
 
 	CompileShader(vertexCode, fragmentCode);
@@ -25,7 +25,7 @@ void Shader::CreateFromFiles(const char* vertexLocation, const char* fragmentLoc
 std::string Shader::ReadFile(const char* fileLocation)
 {
 	std::string content;
-	std::ifstream fileStream(fileLocation, std::ios::in);
+	std::ifstream fileStream(fileLocation, std::ios::in); //file io var
 
 	if (!fileStream.is_open()) {
 		printf("Failed to read %s! File doesn't exist.", fileLocation);
@@ -36,7 +36,7 @@ std::string Shader::ReadFile(const char* fileLocation)
 	while (!fileStream.eof())
 	{
 		std::getline(fileStream, line);
-		content.append(line + "\n");
+		content.append(line + "\n"); //write file contents to this variable (output = "#version 330      \n\"...)
 	}
 
 	fileStream.close();
@@ -45,23 +45,24 @@ std::string Shader::ReadFile(const char* fileLocation)
 
 void Shader::CompileShader(const char* vertexCode, const char* fragmentCode)
 {
-	shaderID = glCreateProgram();
+	shaderID = glCreateProgram(); //create shader program executable in the GPU memory
 
-	if (!shaderID)
+	if (!shaderID) //if executable with appropriate shader id not found ERROR!
 	{
 		printf("Error creating shader program!\n");
 		return;
 	}
 
-	AddShader(shaderID, vertexCode, GL_VERTEX_SHADER);
-	AddShader(shaderID, fragmentCode, GL_FRAGMENT_SHADER);
+	AddShader(shaderID, vertexCode, GL_VERTEX_SHADER); //create shaders from the shader file that was just imported (vertex shaders)
+	AddShader(shaderID, fragmentCode, GL_FRAGMENT_SHADER); //create shaders from the shader file that was just imported (fragment shaders)
 
+	//for the debugging the OpenGL code as debugging on GPU is hard or is not possible
 	GLint result = 0;
 	GLchar eLog[1024] = { 0 };
 
 	glLinkProgram(shaderID);
-	glGetProgramiv(shaderID, GL_LINK_STATUS, &result);
-	if (!result)
+	glGetProgramiv(shaderID, GL_LINK_STATUS, &result); //linker result stored to the result varibale reference
+	if (!result) //if error, display it
 	{
 		glGetProgramInfoLog(shaderID, sizeof(eLog), NULL, eLog);
 		printf("Error linking program: '%s'\n", eLog);
@@ -69,16 +70,16 @@ void Shader::CompileShader(const char* vertexCode, const char* fragmentCode)
 	}
 
 	glValidateProgram(shaderID);
-	glGetProgramiv(shaderID, GL_VALIDATE_STATUS, &result);
-	if (!result)
+	glGetProgramiv(shaderID, GL_VALIDATE_STATUS, &result); //program validation status stored to the result varibale reference
+	if (!result)//if error, display it
 	{
 		glGetProgramInfoLog(shaderID, sizeof(eLog), NULL, eLog);
 		printf("Error validating program: '%s'\n", eLog);
 		return;
 	}
 
-	uniformProjection = glGetUniformLocation(shaderID, "projection");
-	uniformModel = glGetUniformLocation(shaderID, "model");
+	uniformProjection = glGetUniformLocation(shaderID, "projection"); //get the location of the "projection" variable from the shader files
+	uniformModel = glGetUniformLocation(shaderID, "model"); //get the location of the "model" variable from the shader files
 }
 
 GLuint Shader::GetProjectionLocation()
