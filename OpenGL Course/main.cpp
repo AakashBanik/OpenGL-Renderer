@@ -1,3 +1,6 @@
+//Aakash Banik
+//OpenGL
+
 #include <iostream>
 #include <string>
 #include <vector>
