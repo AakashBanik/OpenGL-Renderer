@@ -1,6 +1,8 @@
 //Aakash Banik
 //OpenGL
 
+#define STB_IMAGE_IMPLEMENTATION
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -16,14 +18,23 @@
 #include "mesh.h"
 #include "Shader.h"
 #include "Window.h"
+#include "Camera.h"
+#include "Texture.h"
 
 using namespace std;
 
 Window mainWindow;
-//window dimensions
 
 vector<mesh*> meshList; //vector of type mesh pointers to store the different mesh objects created
 vector<Shader> shaderList; //vector of type shader pointers to store the different shader objects created
+Camera camera;
+
+GLfloat deltaTime = 0.0f;
+GLfloat lastTime = 0.0f;
+
+Texture brickTexture;
+Texture dirtTexture;
+
 
 //vertex Shader written in GLSL, can be written in a separate file
 static const char* vShader = "Shaders/shader.vert"; //vertex shaders file location
@@ -45,20 +56,21 @@ void create_objects()
 
 	//vertices of the triangle min = 0 max = 1.0f (normalized scale)
 	GLfloat vertices[] = {
-		-1.0f, -1.0f, 0.0f,
-		0.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f
+	//   x		y		z		u		 v
+		-1.0f, -1.0f, 0.0f,    0.0f,	0.0f,
+		0.0f, -1.0f, 1.0f,	   0.5f,	0.0f,
+		1.0f, -1.0f, 0.0f,	   1.0f,	0.0f,
+		0.0f, 1.0f, 0.0f,	   0.5f,	1.0f
 	};
 
 	//mesh objects for the VAO, VBO and the IBO for the given object to be rendered
 	mesh *objs = new mesh();
-	objs->createMesh(vertices, Indices, 12, 12);
+	objs->createMesh(vertices, Indices, 20, 12);
 	meshList.push_back(objs); //stores into a vertex array for a later use in the program
 
 	//object for a second triangle
 	mesh *objs2 = new mesh();
-	objs2->createMesh(vertices, Indices, 12, 12);
+	objs2->createMesh(vertices, Indices, 20, 12);
 	meshList.push_back(objs2);
 }
 
@@ -81,23 +93,41 @@ int main()
 	create_objects(); //create/ initialize the different props to create the shapes
 	createShaders(); //create shaders
 
-	GLuint uniformProjection = 0, uniformModel = 0; //variables to take in the position of the "projection" and "model" variables from the shaders
+	camera = Camera(glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0), -90.0, 0.0, 2.0, 0.1);
+
+	brickTexture = Texture("Textures/brick.png");
+	brickTexture.loadTexture();
+	dirtTexture = Texture("Textures/dirt.png");
+	dirtTexture.loadTexture();
+
+	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0; //variables to take in the position of the "projection","model" and "view" variables from the shaders
 	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 100.0f); //creates a perspective model for viewing the shapes
 
 	// Loop until window closed
 	while (!mainWindow.getShouldClose())
 	{
+		//calculating the deltatime for uniformity across all computers
+		GLfloat now = glfwGetTime();
+		deltaTime = now - lastTime;
+		lastTime = now;
+
 		// Get + Handle User Input
 		glfwPollEvents();
+
+		//camera controls for keyboard and mouse (WASD)
+		camera.keyControl(mainWindow.getKeys(), deltaTime);
+		camera.mouseControl(mainWindow.getxChange(), mainWindow.getyChange());
 
 		// Clear the window
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear both the depth and the color buffer
 
+
+
 		shaderList[0].UseShader(); //use shader that was previously created in the createShader function to render the obejcts
 		uniformModel = shaderList[0].GetModelLocation(); //get the "model" var "location"
 		uniformProjection = shaderList[0].GetProjectionLocation(); //get the "projection" var "location"
-
+		uniformView = shaderList[0].GetViewLocation();
 		glm::mat4 model; //identity matrix
 
 		//for the first model
@@ -105,13 +135,21 @@ int main()
 		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f)); //scale function applied to the object
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model)); //"model" and the model linked
 		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection)); //"projection" and projection linked
+		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(camera.calculateViewMatrix())); //"view" and the model linked
+		
+		brickTexture.useTexture();
+
 		meshList[0]->renderMesh(); //render the appropriate shape from the above vars and initializations (check mesh.h and mesh.cpp for further details)
+
 
 		//for the second model
 		model = glm::mat4();
 		model = glm::translate(model, glm::vec3(0.0f, 0.9f, -2.5f));
 		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+
+		dirtTexture.useTexture();
+
 		meshList[1]->renderMesh();
 
 		glUseProgram(0); //unbind the program that was used

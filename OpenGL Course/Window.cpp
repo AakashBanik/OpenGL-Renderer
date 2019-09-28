@@ -18,7 +18,7 @@ Window::Window(GLint width, GLint height)
 	height = height;
 	for (int i = 0; i < 1024; i++)
 	{
-		keys[i] = 0;
+		keys[i] = 0; //initialize all keys to false
 	}
 }
 
@@ -77,20 +77,19 @@ int Window::initialize()
 	glfwSetWindowUserPointer(mainWindow, this);
 }
 
-void Window::handleKeys(GLFWwindow* window, int key, int code, int action, int mode)
+void Window::handleKeys(GLFWwindow* window, int key, int code, int action, int mode) //handle key press events, params should match the callback function params to access the data
 {
-	Window* theWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
+	Window* theWindow = static_cast<Window*>(glfwGetWindowUserPointer(window)); //get the pointer to the current window for the static function access
 
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, GL_TRUE);
-		
+		glfwSetWindowShouldClose(window, GL_TRUE); //if ESC is pressed, close the window, 
 	}
 
 	if(key >= 0 && key < 1024)
 	{
 		if(action == GLFW_PRESS)
 		{
-			theWindow->keys[key] = true;
+			theWindow->keys[key] = true; //set the key pressed to true
 			//std::cout << "Pressed: " << key <<"\n";
 		}
 		else if(action == GLFW_RELEASE)
@@ -102,21 +101,21 @@ void Window::handleKeys(GLFWwindow* window, int key, int code, int action, int m
 	
 }
 
-void Window::handleMouse(GLFWwindow* window, double xPos, double yPos)
+void Window::handleMouse(GLFWwindow* window, double xPos, double yPos) //handle mouse movements and press events, params should match the callback function params to access the data
 {
-	Window* theWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
+	Window* theWindow = static_cast<Window*>(glfwGetWindowUserPointer(window)); //get the pointer to the current window for the static function access
 
-	if(theWindow->mouseFirstMoved)
+	if(theWindow->mouseFirstMoved) //if mouse is moved the first time, put the last value as the current value
 	{
 		theWindow->lastX = xPos;
 		theWindow->lastY = yPos;
 		theWindow->mouseFirstMoved = false;
 	}
 
-	theWindow->xChange = xPos - theWindow->lastX;
-	//theWindow->xChange = theWindow->lastX - xPos; //for inverted controls
-	//theWindow->yChange = yPos - theWindow->lastY;//for inverted controls
-	theWindow->yChange = theWindow->lastY - yPos;//for normal controls
+	//theWindow->xChange = xPos - theWindow->lastX; //change in value is the current minus the last value
+	theWindow->xChange = theWindow->lastX - xPos; //for inverted controls
+	theWindow->yChange = yPos - theWindow->lastY;//for inverted controls
+	//theWindow->yChange = theWindow->lastY - yPos;//for normal controls
 
 	theWindow->lastX = xPos;
 	theWindow->lastY = yPos;
@@ -126,7 +125,7 @@ void Window::handleMouse(GLFWwindow* window, double xPos, double yPos)
 }
 
 
-void Window::createCallBacks()
+void Window::createCallBacks() //callbacks for the mouse pointer values and key pressed events and action, also returns the current window pointer
 {
 	glfwSetKeyCallback(mainWindow, handleKeys);
 	glfwSetCursorPosCallback(mainWindow, handleMouse);
@@ -134,7 +133,7 @@ void Window::createCallBacks()
 
 GLfloat Window::getxChange()
 {
-	GLfloat theChange = xChange;
+	GLfloat theChange = xChange; //get the current change value and then initialize it to zero
 	xChange = 0.0f;
 	return theChange;
 }
@@ -145,9 +144,6 @@ GLfloat Window::getyChange()
 	yChange = 0.0f;
 	return theChange;
 }
-
-
-
 
 Window::~Window()
 {
