@@ -12,10 +12,10 @@ Window::Window()
 	}
 }
 
-Window::Window(GLint width, GLint height)
+Window::Window(GLint Wwidth, GLint Wheight)
 {
-	width = width;
-	height = height;
+	width = Wwidth;
+	height = Wheight;
 	for (int i = 0; i < 1024; i++)
 	{
 		keys[i] = 0; //initialize all keys to false
