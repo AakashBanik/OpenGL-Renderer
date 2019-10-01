@@ -112,10 +112,10 @@ void Window::handleMouse(GLFWwindow* window, double xPos, double yPos) //handle 
 		theWindow->mouseFirstMoved = false;
 	}
 
-	//theWindow->xChange = xPos - theWindow->lastX; //change in value is the current minus the last value
-	theWindow->xChange = theWindow->lastX - xPos; //for inverted controls
-	theWindow->yChange = yPos - theWindow->lastY;//for inverted controls
-	//theWindow->yChange = theWindow->lastY - yPos;//for normal controls
+	theWindow->xChange = xPos - theWindow->lastX; //change in value is the current minus the last value
+	//theWindow->xChange = theWindow->lastX - xPos; //for inverted controls
+	//theWindow->yChange = yPos - theWindow->lastY;//for inverted controls
+	theWindow->yChange = theWindow->lastY - yPos;//for normal controls
 
 	theWindow->lastX = xPos;
 	theWindow->lastY = yPos;
