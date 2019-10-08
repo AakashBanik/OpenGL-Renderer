@@ -24,6 +24,10 @@
 #include "Material.h"
 #include "common.h"
 #include "PointLight.h"
+#include "SpotLight.h"
+#include "Model.h"
+
+#include <assimp/Importer.hpp>
 
 using namespace std;
 
@@ -33,16 +37,22 @@ vector<mesh*> meshList; //vector of type mesh pointers to store the different me
 vector<Shader> shaderList; //vector of type shader pointers to store the different shader objects created
 Camera camera;
 
+Model BlackHawk;
+
 Material shinyMaterial;
 Material dullMaterial;
 PointLight pointLight[MAX_POINT_LIGHTS];
+SpotLight spotLight[MAX_SPOTLIGHT];
 
 GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
 
+const float toRadians = 0.01745f;
+
 Texture brickTexture;
 Texture dirtTexture;
 Texture floorTexture;
+
 
 
 //vertex Shader written in GLSL, can be written in a separate file
@@ -153,32 +163,50 @@ int main()
 	camera = Camera(glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0), -90.0, 0.0, 2.0, 0.1);
 
 	brickTexture = Texture("Textures/brick.png");
-	brickTexture.loadTexture();
+	bool gotBrick = brickTexture.loadTextureA();
 	dirtTexture = Texture("Textures/dirt.png");
-	dirtTexture.loadTexture();
+	bool gotDirt = dirtTexture.loadTextureA();
 	floorTexture = Texture("Textures/plain.png");
-	floorTexture.loadTexture();
+	bool gotFloor = floorTexture.loadTextureA();
+
+
+	BlackHawk = Model();
+	BlackHawk.LoadModel("Models/Arc170.obj");
 
 	shinyMaterial = Material(1.0f, 32);
 	dullMaterial = Material(0.3f, 4);
 
 	mainLight = DirectionalLight(1.0f, 1.0f, 1.0f, 
-								0.1f, 0.3f,
+								0.6f, 0.6f,
 								0.0f, 0.0f, -1.0f);
 
 	unsigned int pointLightCount = 0;
 
-	pointLight[0] = PointLight(0.0, 0.0, 1.0,
-								0.1, 0.4, 
+	pointLight[0] = PointLight(0.2, 0.5, 0.5,
+								0.1, 0.2, 
 								4.0, 0.0, 0.0, 
 								0.3, 0.2, 0.1);
 	pointLightCount++;
 
 	pointLight[1] = PointLight(0.0, 1.0, 0.0,
-								0.1, 1.0, 
+								0.1, 0.2, 
 								-4.0, 2.0, 0.0, 
 								0.3, 0.1, 0.1);
 	pointLightCount++;
+
+	unsigned int spotLightCount = 0;
+	/*spotLight[0] = SpotLight(1.0, 1.0, 1.0,
+								0.5, 0.5, 
+								0.0, 0.0, 0.0, 
+								0.0f, -1.0f, 0.0f,
+								1.0, 0.0, 0.0, 20.0f);
+	spotLightCount++;*/
+	spotLight[1] = SpotLight(0.5, 0.5, 1.0,
+								0.0, 1.0, 
+								0.0, 0.0, 0.0, 
+								-100.0f, -1.0f, 0.0f,
+								1.0, 0.0, 0.0, 20.0f);
+	spotLightCount++;
 
 	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, 
 		uniformEyePosition = 0, uniformSpecularIntensity = 0, uniformShininess = 0; //variables to take in the position of the "projection","model" and "view" variables from the shaders
@@ -214,8 +242,13 @@ int main()
 		uniformSpecularIntensity = shaderList[0].getSpecularIntensityLocation();
 		uniformShininess = shaderList[0].getShininessLocation();
 
+		glm::vec3 lowerLight = camera.getCameraPosition();
+		lowerLight.y -= 0.1f;
+		spotLight[0].SetFlash(lowerLight, camera.getCameraDirection());
+
 		shaderList[0].setDirectionalLight(&mainLight);
 		shaderList[0].setPointLights(pointLight, pointLightCount);
+		shaderList[0].setSpotLights(spotLight, spotLightCount);
 
 		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection)); //"projection" and projection linked
 		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(camera.calculateViewMatrix())); //"view" and the model linked
@@ -233,15 +266,15 @@ int main()
 		meshList[0]->renderMesh(); //render the appropriate shape from the above vars and initializations (check mesh.h and mesh.cpp for further details)
 
 
-		//for the second model
-		model = glm::mat4();
-		model = glm::translate(model, glm::vec3(0.0f, 4.0f, -2.5f));
-		//model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		////for the second model
+		//model = glm::mat4();
+		//model = glm::translate(model, glm::vec3(0.0f, 4.0f, -2.5f));
+		////model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
+		//glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 
-		dirtTexture.useTexture();
-		dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
-		meshList[1]->renderMesh();
+		//dirtTexture.useTexture();
+		//dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+		//meshList[1]->renderMesh();
 
 		//floor
 		model = glm::mat4();
@@ -249,9 +282,18 @@ int main()
 		//model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 
-		floorTexture.useTexture();
+		dirtTexture.useTexture();
 		shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		meshList[2]->renderMesh();
+
+		//heli
+		model = glm::mat4();
+		model = glm::translate(model, glm::vec3(0.0f, 3.0f,-2.5f));
+		//model = glm::rotate(model, 180.0f * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.002f, 0.002f, 0.002f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+		BlackHawk.RenderModel();
 
 		glUseProgram(0); //unbind the program that was used
 

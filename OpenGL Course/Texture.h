@@ -9,7 +9,8 @@ public:
 	Texture();
 	Texture(const char *fileloc);
 
-	void loadTexture();
+	bool loadTexture();
+	bool loadTextureA(); //for textures with alpha channel
 	void useTexture();
 	void clearTexture();
 	~Texture();

@@ -7,6 +7,7 @@
 #include "PointLight.h"
 #include <GL\glew.h>
 #include "common.h"
+#include "SpotLight.h"
 
 class Shader
 {
@@ -35,12 +36,13 @@ public:
 
 	void setDirectionalLight(DirectionalLight *dLight);
 	void setPointLights(PointLight *pLight, unsigned int lightCount);
+	void setSpotLights(SpotLight *sLight, unsigned int lightCount);
 
 
 	~Shader();
 
 private:
-	int pointLightCount;
+	int pointLightCount, spotlightCount;
 
 	GLuint shaderID, uniformProjection, uniformModel, uniformView,
 	uniformEyePosition, unifromSpecularIntensity, uniformShininess;
@@ -54,7 +56,22 @@ private:
 		GLuint uniformDirection;
 	}uniformDirectionalLight;
 
-	GLuint uniformPointLightCount;
+	GLuint uniformPointLightCount, unifromSpotlightCount;
+
+	struct
+	{
+		GLuint uniformColor;
+		GLuint uniformAmbientIntensity;
+		GLuint uniformDiffuseIntensity;
+
+		GLuint uniformPosition;
+		GLuint uniformConstant;
+		GLuint uniformLinear;
+		GLuint uniformExponent;
+
+		GLuint unifromDirection;
+		GLuint uniformEdge;
+	}uniformSpotLight[MAX_SPOTLIGHT];
 
 	struct
 	{
