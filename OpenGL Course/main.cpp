@@ -27,8 +27,6 @@
 #include "SpotLight.h"
 #include "Model.h"
 
-#include <assimp/Importer.hpp>
-
 using namespace std;
 
 Window mainWindow;
@@ -37,7 +35,7 @@ vector<mesh*> meshList; //vector of type mesh pointers to store the different me
 vector<Shader> shaderList; //vector of type shader pointers to store the different shader objects created
 Camera camera;
 
-Model BlackHawk;
+Model plane, heli;
 
 Material shinyMaterial;
 Material dullMaterial;
@@ -170,8 +168,11 @@ int main()
 	bool gotFloor = floorTexture.loadTextureA();
 
 
-	BlackHawk = Model();
-	BlackHawk.LoadModel("Models/Arc170.obj");
+	plane = Model();
+	plane.LoadModel("Models/Arc170.obj", 'A');
+
+	heli = Model();
+	heli.LoadModel("Models/Seahawk.obj", 'n');
 
 	shinyMaterial = Material(1.0f, 32);
 	dullMaterial = Material(0.3f, 4);
@@ -182,31 +183,19 @@ int main()
 
 	unsigned int pointLightCount = 0;
 
-	pointLight[0] = PointLight(0.2, 0.5, 0.5,
+	pointLight[0] = PointLight(1.0, 1.0, 1.0,
 								0.1, 0.2, 
 								4.0, 0.0, 0.0, 
 								0.3, 0.2, 0.1);
 	pointLightCount++;
 
-	pointLight[1] = PointLight(0.0, 1.0, 0.0,
-								0.1, 0.2, 
-								-4.0, 2.0, 0.0, 
-								0.3, 0.1, 0.1);
-	pointLightCount++;
-
 	unsigned int spotLightCount = 0;
-	/*spotLight[0] = SpotLight(1.0, 1.0, 1.0,
-								0.5, 0.5, 
-								0.0, 0.0, 0.0, 
-								0.0f, -1.0f, 0.0f,
-								1.0, 0.0, 0.0, 20.0f);
-	spotLightCount++;*/
-	spotLight[1] = SpotLight(0.5, 0.5, 1.0,
+	spotLight[0] = SpotLight(0.5, 0.5, 1.0,
 								0.0, 1.0, 
 								0.0, 0.0, 0.0, 
 								-100.0f, -1.0f, 0.0f,
 								1.0, 0.0, 0.0, 20.0f);
-	spotLightCount++;
+	//spotLightCount++;
 
 	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, 
 		uniformEyePosition = 0, uniformSpecularIntensity = 0, uniformShininess = 0; //variables to take in the position of the "projection","model" and "view" variables from the shaders
@@ -257,24 +246,13 @@ int main()
 		glm::mat4 model; //identity matrix
 
 		//for the first model
-		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.5f)); //translate function applied to the model genrated
+		model = glm::translate(model, glm::vec3(-2.0f, -0.6f, -2.5f)); //translate function applied to the model genrated
 		//model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f)); //scale function applied to the object
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model)); //"model" and the model linked
 		brickTexture.useTexture();
 		shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 
 		meshList[0]->renderMesh(); //render the appropriate shape from the above vars and initializations (check mesh.h and mesh.cpp for further details)
-
-
-		////for the second model
-		//model = glm::mat4();
-		//model = glm::translate(model, glm::vec3(0.0f, 4.0f, -2.5f));
-		////model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
-		//glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-
-		//dirtTexture.useTexture();
-		//dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
-		//meshList[1]->renderMesh();
 
 		//floor
 		model = glm::mat4();
@@ -286,14 +264,23 @@ int main()
 		shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		meshList[2]->renderMesh();
 
-		//heli
+		//plane
 		model = glm::mat4();
 		model = glm::translate(model, glm::vec3(0.0f, 3.0f,-2.5f));
 		//model = glm::rotate(model, 180.0f * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(0.002f, 0.002f, 0.002f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
-		BlackHawk.RenderModel();
+		plane.RenderModel();
+
+		//heli
+		model = glm::mat4();
+		model = glm::translate(model, glm::vec3(2.0f, -1.9f,-2.0f));
+		//model = glm::rotate(model, 180.0f * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.02f, 0.02f, 0.02f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+		heli.RenderModel();
 
 		glUseProgram(0); //unbind the program that was used
 

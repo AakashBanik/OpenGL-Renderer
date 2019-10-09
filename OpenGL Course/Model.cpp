@@ -6,7 +6,7 @@ Model::Model()
 {
 }
 
-void Model::LoadModel(const std::string& fileName)
+void Model::LoadModel(const std::string& fileName, char alpha)
 {
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(fileName, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices);
@@ -19,7 +19,17 @@ void Model::LoadModel(const std::string& fileName)
 
 	LoadNode(scene->mRootNode, scene);
 
-	LoadMaterials(scene);
+	if(alpha == 'A' || alpha == 'a')
+	{
+		std::cout<<"Loading Alpha channel models";
+		LoadMaterialsAlpha(scene);
+	}
+	else if (alpha == 'n' || alpha == 'N')
+	{
+		std::cout<<"Loading Non Alpha channel models";
+		LoadMaterials(scene);
+	}
+	
 }
 
 
@@ -76,7 +86,7 @@ void Model::LoadMesh(aiMesh* Mesh, const aiScene* scene)
 void Model::LoadMaterials(const aiScene* scene)
 {
 	textureList.resize(scene->mNumMaterials);
-	for (int i = 0; i < scene->mNumMaterials; i++)
+	for (size_t i = 0; i < scene->mNumMaterials; i++)
 	{
 		aiMaterial* material = scene->mMaterials[i];
 
@@ -90,7 +100,45 @@ void Model::LoadMaterials(const aiScene* scene)
 				int idx = std::string(path.data).rfind("\\");
 				std::string filename = std::string(path.data).substr(idx + 1);
 
-				std::string texPath = std::string("Textures/Arc170_blinn1.png");
+				std::string texPath = std::string("Textures/") + filename;
+
+				textureList[i] = new Texture(texPath.c_str());
+
+				if(!textureList[i]->loadTexture())
+				{
+					std::cout<<"Failed to load texture at: " <<texPath <<"\n";
+					delete(textureList[i]);
+					textureList[i] = nullptr;
+				}
+			}
+		}
+
+		if(!textureList[i])
+		{
+			textureList[i] = new Texture("Textures/plain.png");
+			textureList[i]->loadTextureA();
+		}
+	}
+}
+
+void Model::LoadMaterialsAlpha(const aiScene* scene)
+{
+	textureList.resize(scene->mNumMaterials);
+	for (size_t i = 0; i < scene->mNumMaterials; i++)
+	{
+		aiMaterial* material = scene->mMaterials[i];
+
+		textureList[i] = nullptr;
+
+		if(material->GetTextureCount(aiTextureType_DIFFUSE))
+		{
+			aiString path;
+			if(material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS)
+			{
+				int idx = std::string(path.data).rfind("\\");
+				std::string filename = std::string(path.data).substr(idx + 1);
+
+				std::string texPath = std::string("Textures/") + filename;
 
 				textureList[i] = new Texture(texPath.c_str());
 

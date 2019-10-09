@@ -15,7 +15,7 @@ class Model
 public:
 	Model();
 
-	void LoadModel(const std::string &fileName);
+	void LoadModel(const std::string &fileName, char alpha);
 	void RenderModel();
 	void ClearModel();
 
@@ -27,6 +27,7 @@ private:
 	void LoadNode(aiNode *node, const aiScene *scene);
 	void LoadMesh(aiMesh *Mesh, const aiScene *scene);
 	void LoadMaterials(const aiScene *scene);
+	void LoadMaterialsAlpha(const aiScene *scene);
 
 
 	std::vector<mesh *> meshList;
