@@ -1,5 +1,5 @@
 #include "Material.h"
-
+#include <iostream>
 
 
 Material::Material()
@@ -10,6 +10,7 @@ Material::Material()
 
 Material::Material(GLfloat sIntensity, GLfloat shine)
 {
+	std::cout << "[P8:GLCustom] Setting material types for textures \n";
 	specularIntensity = sIntensity;
 	shininess = shine;
 }

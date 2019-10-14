@@ -1,4 +1,5 @@
 #include "Shader.h"
+#include <chrono>
 
 Shader::Shader()
 {
@@ -16,11 +17,15 @@ void Shader::CreateFromString(const char* vertexCode, const char* fragmentCode)
 
 void Shader::CreateFromFiles(const char* vertexLocation, const char* fragmentLocation)
 {
+	auto start = std::chrono::steady_clock::now();
+	std::cout<<"[P3:GLCustom] Loading Vertex Shaders from File(s): " <<vertexLocation <<"\n";
+	std::cout<<"[P3.1:GLCustom] Loading Fragment Shaders from File(s): " <<fragmentLocation;
 	std::string vertexString = ReadFile(vertexLocation); //read the file using ifstream 
 	std::string fragmentString = ReadFile(fragmentLocation);
 	const char* vertexCode = vertexString.c_str(); //convert into char pointer string
 	const char* fragmentCode = fragmentString.c_str();
-
+	auto end = std::chrono::steady_clock::now();
+	std::cout<<" Execution Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() <<" milliseconds \n";
 	CompileShader(vertexCode, fragmentCode);
 }
 
@@ -30,7 +35,7 @@ std::string Shader::ReadFile(const char* fileLocation)
 	std::ifstream fileStream(fileLocation, std::ios::in); //file io var
 
 	if (!fileStream.is_open()) {
-		printf("Failed to read %s! File doesn't exist.", fileLocation);
+		printf("[ERROR:GLCustom] Failed to read %s! File doesn't exist.", fileLocation);
 		return "";
 	}
 
@@ -47,11 +52,13 @@ std::string Shader::ReadFile(const char* fileLocation)
 
 void Shader::CompileShader(const char* vertexCode, const char* fragmentCode)
 {
+	auto start = std::chrono::steady_clock::now();
+	std::cout<<"[P4:GLCustom] Started Compiling shaders from files\n";
 	shaderID = glCreateProgram(); //create shader program executable in the GPU memory
 
 	if (!shaderID) //if executable with appropriate shader id not found ERROR!
 	{
-		printf("Error creating shader program!\n");
+		printf("[ERROR:GLCustom] Error creating shader program!\n");
 		return;
 	}
 
@@ -67,7 +74,7 @@ void Shader::CompileShader(const char* vertexCode, const char* fragmentCode)
 	if (!result) //if error, display it
 	{
 		glGetProgramInfoLog(shaderID, sizeof(eLog), NULL, eLog);
-		printf("Error linking program: '%s'\n", eLog);
+		printf("[ERROR:GLCustom] Error linking program: '%s'\n", eLog);
 		return;
 	}
 
@@ -76,7 +83,7 @@ void Shader::CompileShader(const char* vertexCode, const char* fragmentCode)
 	if (!result)//if error, display it
 	{
 		glGetProgramInfoLog(shaderID, sizeof(eLog), NULL, eLog);
-		printf("Error validating program: '%s'\n", eLog);
+		printf("[ERROR:GLCustom] Error validating program: '%s'\n", eLog);
 		return;
 	}
 
@@ -152,6 +159,10 @@ void Shader::CompileShader(const char* vertexCode, const char* fragmentCode)
 		snprintf(locBuff, sizeof(locBuff), "spotLights[%d].edge", i);
 		uniformSpotLight[i].uniformEdge = glGetUniformLocation(shaderID, locBuff);
 	}
+
+	std::cout <<"[P4.1:GLCustom] Finished compiling shaders from the files ";
+	auto end = std::chrono::steady_clock::now();
+	std::cout<<"Execution Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() <<" milliseconds \n";
 }
 
 void Shader::setDirectionalLight(DirectionalLight* dLight)
@@ -293,7 +304,7 @@ void Shader::AddShader(GLuint theProgram, const char* shaderCode, GLenum shaderT
 	if (!result)
 	{
 		glGetShaderInfoLog(theShader, sizeof(eLog), NULL, eLog);
-		printf("Error compiling the %d shader: '%s'\n", shaderType, eLog);
+		printf("[ERROR:GLCustom] Error compiling the %d shader: '%s'\n", shaderType, eLog);
 		return;
 	}
 

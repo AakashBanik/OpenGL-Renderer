@@ -1,4 +1,5 @@
 #include "DirectionalLight.h"
+#include <iostream>
 
 DirectionalLight::DirectionalLight()
 {
@@ -9,6 +10,7 @@ DirectionalLight::DirectionalLight(GLfloat red, GLfloat green, GLfloat blue,
 								   GLfloat aIntensity, GLfloat dINtensity,
 								   GLfloat xDir, GLfloat yDir, GLfloat zDir) : Light(red, green, blue, aIntensity, dINtensity)
 {
+	std::cout << "[P9:GLCustom] Initializing Directional Light \n";
 	direction = glm::vec3(xDir, yDir, zDir);
 }
 

@@ -1,9 +1,10 @@
 #include "Camera.h"
-
+#include <iostream>
 
 
 Camera::Camera(glm::vec3 startPosition, glm::vec3 startUp,  GLfloat startYaw, GLfloat startPitch, GLfloat startmoveSpeed, GLfloat startTurnSpeed)
 {
+	std::cout<<"[P5:GLCustom] Initialized Camera \n";
 	position = startPosition;
 	worldUp = startUp;
 	yaw = startYaw;

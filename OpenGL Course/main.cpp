@@ -2,10 +2,13 @@
 //OpenGL
 
 #define STB_IMAGE_IMPLEMENTATION
+#define _X86_
+
 
 #include <iostream>
 #include <string>
 #include <vector>
+#include <chrono>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -26,6 +29,7 @@
 #include "PointLight.h"
 #include "SpotLight.h"
 #include "Model.h"
+
 
 using namespace std;
 
@@ -50,8 +54,6 @@ const float toRadians = 0.01745f;
 Texture brickTexture;
 Texture dirtTexture;
 Texture floorTexture;
-
-
 
 //vertex Shader written in GLSL, can be written in a separate file
 static const char* vShader = "Shaders/shader.vert"; //vertex shaders file location
@@ -92,6 +94,8 @@ void calcAverageNormal(unsigned int * indices, unsigned int indiceCount, GLfloat
 //create objects i.e. VA/VB/IB O for the shapes to be rendered
 void create_objects()
 {	
+	auto start = chrono::steady_clock::now();
+	std::cout<<"[P2:GLCustom] Creating Predifined Objects in the scene. ";
 	//indices to plot out the pyramids, 0 = -1.0f, -1.0f, 0.0f etc...
 	unsigned int Indices[] = { 
 		0, 3, 1,
@@ -137,6 +141,8 @@ void create_objects()
 	mesh *obj3 = new mesh();
 	obj3->createMesh(floorVertices, floorIndices, 32, 6);
 	meshList.push_back(obj3);
+	auto end = chrono::steady_clock::now();
+	std::cout<<"Execution Time: " << chrono::duration_cast<chrono::milliseconds>(end-start).count() <<" milliseconds \n";
 }
 
 //function to load in shaders and create them to render the object
@@ -287,5 +293,6 @@ int main()
 		mainWindow.swapBuffers();
 	}
 
+	cout<<"[PF:GLCustom] Terminating Program \n";
 	return 0;
 }

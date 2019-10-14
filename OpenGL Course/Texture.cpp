@@ -22,11 +22,11 @@ Texture::Texture(const char *fileloc)
 
 bool Texture::loadTextureA()
 {
+	
 	unsigned char *texData = stbi_load(fileLocation, &widht, &height, &bitDepth, 0);
-
 	if(!texData)
 	{
-		std::cout << "No Texture data in: " << fileLocation;
+		std::cout << "[ERROR:GLCustom] No Texture data in: " << fileLocation;
 		return false;
 	} 
 
@@ -50,10 +50,9 @@ bool Texture::loadTextureA()
 bool Texture::loadTexture()
 {
 	unsigned char *texData = stbi_load(fileLocation, &widht, &height, &bitDepth, 0);
-
 	if(!texData)
 	{
-		std::cout << "No Texture data in: " << fileLocation;
+		std::cout << "[ERROR: GLCustom] No Texture data in: " << fileLocation;
 		return false;
 	} 
 

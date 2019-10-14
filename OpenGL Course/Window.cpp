@@ -1,5 +1,5 @@
 #include "Window.h"
-
+#include <chrono>
 
 
 Window::Window()
@@ -23,11 +23,12 @@ Window::Window(GLint Wwidth, GLint Wheight)
 }
 
 int Window::initialize()
-{
+{	
+	auto start = std::chrono::steady_clock::now();
 	//initialize glfw
 	if (!glfwInit())
 	{
-		std::cout << "GLFW Falied";
+		std::cout << "[ERROR:GLCustom] GLFW Falied";
 		glfwTerminate();
 		return 1;
 	}
@@ -42,7 +43,7 @@ int Window::initialize()
 
 	if (!mainWindow)
 	{
-		std::cout << "GLFW Window Creation Failed";
+		std::cout << "[ERROR:GLCustom] GLFW Window Creation Failed";
 		glfwTerminate();
 		return 1;
 	}
@@ -66,7 +67,7 @@ int Window::initialize()
 	//initialize glew
 	if (glewInit() != GLEW_OK)
 	{
-		std::cout << "GLEW Failed";
+		std::cout << "[ERROR:GLCustom] GLEW Failed";
 		glfwDestroyWindow(mainWindow);
 		glfwTerminate();
 		return 1;
@@ -75,6 +76,10 @@ int Window::initialize()
 	//setup viewport size
 	glViewport(0, 0, bufferwidth, bufferheight);
 	glfwSetWindowUserPointer(mainWindow, this);
+
+	std::cout<<"[P1:GLCustom] Window Creation Successful with Width: " <<width <<" and Height: " <<height;
+	auto end = std::chrono::steady_clock::now();
+	std::cout<<" Execution Time: " << std::chrono::duration_cast<std::chrono::seconds>(end-start).count() <<" seconds \n";
 }
 
 void Window::handleKeys(GLFWwindow* window, int key, int code, int action, int mode) //handle key press events, params should match the callback function params to access the data
@@ -83,6 +88,7 @@ void Window::handleKeys(GLFWwindow* window, int key, int code, int action, int m
 
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, GL_TRUE); //if ESC is pressed, close the window, 
+		std::cout<<"[PL:GLCustom] Closing Window, clearing reserved space \n";
 	}
 
 	if(key >= 0 && key < 1024)

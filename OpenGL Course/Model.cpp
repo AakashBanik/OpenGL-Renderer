@@ -1,5 +1,6 @@
 #include "Model.h"
 #include <iostream>
+#include <chrono>
 
 
 Model::Model()
@@ -13,7 +14,7 @@ void Model::LoadModel(const std::string& fileName, char alpha)
 
 	if(!scene)
 	{
-		std::cout<<"Model failed to load. Error: " <<importer.GetErrorString();
+		std::cout<<"[ERROR:GLCustom] Model failed to load. Error: " <<importer.GetErrorString();
 		return;
 	}
 
@@ -21,13 +22,19 @@ void Model::LoadModel(const std::string& fileName, char alpha)
 
 	if(alpha == 'A' || alpha == 'a')
 	{
-		std::cout<<"Loading Alpha channel models";
+		auto start = std::chrono::steady_clock::now();
+		std::cout<<"[P6:GLCustom] Loading Alpha channel models. ";
 		LoadMaterialsAlpha(scene);
+		auto end = std::chrono::steady_clock::now();
+		std::cout<<"Execution Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() <<" milliseconds \n";
 	}
 	else if (alpha == 'n' || alpha == 'N')
 	{
-		std::cout<<"Loading Non Alpha channel models";
+		auto start = std::chrono::steady_clock::now();
+		std::cout<<"[P7:GLCustom] Loading Non-Alpha channel models. ";
 		LoadMaterials(scene);
+		auto end = std::chrono::steady_clock::now();
+		std::cout<<"Execution Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() <<" milliseconds \n";
 	}
 	
 }
@@ -106,7 +113,7 @@ void Model::LoadMaterials(const aiScene* scene)
 
 				if(!textureList[i]->loadTexture())
 				{
-					std::cout<<"Failed to load texture at: " <<texPath <<"\n";
+					std::cout<<"[ERROR:GLCustom] Failed to load texture at: " <<texPath <<"\n";
 					delete(textureList[i]);
 					textureList[i] = nullptr;
 				}
@@ -144,7 +151,7 @@ void Model::LoadMaterialsAlpha(const aiScene* scene)
 
 				if(!textureList[i]->loadTextureA())
 				{
-					std::cout<<"Failed to load texture at: " <<texPath <<"\n";
+					std::cout<<"[ERROR:GLCustom] Failed to load texture at: " <<texPath <<"\n";
 					delete(textureList[i]);
 					textureList[i] = nullptr;
 				}
@@ -195,8 +202,6 @@ void Model::RenderModel()
 		meshList[i]->renderMesh();
 	}
 }
-
-
 
 Model::~Model()
 {

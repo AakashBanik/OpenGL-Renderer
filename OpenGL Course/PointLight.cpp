@@ -1,5 +1,5 @@
 #include "PointLight.h"
-
+#include <iostream>
 
 
 PointLight::PointLight()
@@ -15,6 +15,7 @@ PointLight::PointLight(GLfloat red, GLfloat green, GLfloat blue,
 						GLfloat xPos, GLfloat yPos, GLfloat zPos, 
 						GLfloat con, GLfloat lin, GLfloat exp) : Light(red, green, blue, aIntensity, dINtensity)
 {
+	std::cout << "[P10:GLCustom] Initializing Point Lights \n";
 	position = glm::vec3(xPos, yPos, zPos);
 	constant = con;
 	linear = lin;
